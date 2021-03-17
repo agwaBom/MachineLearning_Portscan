@@ -1,0 +1,107 @@
+#Limpa a área de trabalho do R
+cat("\014")
+rm(list=ls(all=TRUE))
+
+library(MASS)
+library(caret)
+#library(ggplot2)
+
+ds_PortScan <- read.csv2("C:/Users/Vinicius/Desktop/CICIDS/CSVs/dataset_7.csv",sep=",",dec=".")
+
+ds_PortScan$ACK.Flag.Count <- NULL             
+ds_PortScan$act_data_pkt_fwd <- NULL           
+ds_PortScan$Active.Max <- NULL                 
+ds_PortScan$Active.Mean <- NULL                
+ds_PortScan$Active.Min  <- NULL                
+ds_PortScan$Active.Std <- NULL                 
+ds_PortScan$Avg.Bwd.Segment.Size  <- NULL      
+ds_PortScan$Avg.Fwd.Segment.Size  <- NULL      
+ds_PortScan$Bwd.Avg.Bulk.Rate     <- NULL      
+ds_PortScan$Bwd.Avg.Bytes.Bulk    <- NULL      
+ds_PortScan$Bwd.Avg.Packets.Bulk   <- NULL     
+ds_PortScan$Bwd.Header.Length  <- NULL         
+ds_PortScan$Bwd.IAT.Max   <- NULL              
+ds_PortScan$Bwd.IAT.Mean  <- NULL              
+ds_PortScan$Bwd.IAT.Min    <- NULL             
+ds_PortScan$Bwd.IAT.Std     <- NULL            
+ds_PortScan$Bwd.IAT.Total <- NULL              
+ds_PortScan$Bwd.Packet.Length.Max  <- NULL     
+ds_PortScan$Bwd.Packet.Length.Mean <- NULL     
+ds_PortScan$Bwd.Packet.Length.Min   <- NULL    
+ds_PortScan$Bwd.PSH.Flags <- NULL              
+ds_PortScan$Bwd.URG.Flags  <- NULL             
+ds_PortScan$CWE.Flag.Count   <- NULL           
+ds_PortScan$Destination.IP    <- NULL          
+ds_PortScan$Destination.Port   <- NULL         
+ds_PortScan$Down.Up.Ratio  <- NULL             
+ds_PortScan$ECE.Flag.Count   <- NULL           
+ds_PortScan$FIN.Flag.Count   <- NULL           
+ds_PortScan$Flow.Bytes.s    <- NULL            
+ds_PortScan$Flow.IAT.Max   <- NULL             
+ds_PortScan$Flow.ID    <- NULL                 
+ds_PortScan$Flow.Packets.s   <- NULL           
+ds_PortScan$Fwd.Avg.Bulk.Rate  <- NULL         
+ds_PortScan$Fwd.Avg.Bytes.Bulk  <- NULL        
+ds_PortScan$Fwd.Avg.Packets.Bulk  <- NULL      
+ds_PortScan$Fwd.Header.Length  <- NULL         
+ds_PortScan$Fwd.Header.Length.1  <- NULL       
+ds_PortScan$Fwd.IAT.Max   <- NULL              
+ds_PortScan$Fwd.IAT.Mean   <- NULL             
+ds_PortScan$Fwd.IAT.Std    <- NULL             
+ds_PortScan$Fwd.IAT.Total   <- NULL            
+ds_PortScan$Fwd.Packet.Length.Max    <- NULL   
+ds_PortScan$Fwd.Packet.Length.Mean   <- NULL   
+ds_PortScan$Fwd.Packet.Length.Min    <- NULL   
+ds_PortScan$Fwd.Packet.Length.Std  <- NULL     
+ds_PortScan$Fwd.Packets.s   <- NULL            
+ds_PortScan$Fwd.PSH.Flags   <- NULL            
+ds_PortScan$Fwd.URG.Flags  <- NULL             
+ds_PortScan$Idle.Max     <- NULL               
+ds_PortScan$Idle.Mean    <- NULL               
+ds_PortScan$Idle.Min    <- NULL                
+ds_PortScan$Idle.Std    <- NULL                
+ds_PortScan$Init_Win_bytes_backward  <- NULL   
+ds_PortScan$Max.Packet.Length    <- NULL       
+ds_PortScan$Min.Packet.Length   <- NULL        
+ds_PortScan$min_seg_size_forward   <- NULL     
+ds_PortScan$Packet.Length.Mean    <- NULL     
+ds_PortScan$Packet.Length.Std   <- NULL        
+ds_PortScan$Packet.Length.Variance   <- NULL   
+ds_PortScan$Protocol        <- NULL            
+ds_PortScan$RST.Flag.Count   <- NULL                    
+ds_PortScan$Source.Port      <- NULL           
+ds_PortScan$Subflow.Bwd.Bytes    <- NULL       
+ds_PortScan$Subflow.Bwd.Packets   <- NULL     
+ds_PortScan$Subflow.Fwd.Bytes      <- NULL     
+ds_PortScan$Subflow.Fwd.Packets    <- NULL     
+ds_PortScan$SYN.Flag.Count     <- NULL         
+ds_PortScan$Timestamp            <- NULL       
+ds_PortScan$Total.Backward.Packets  <- NULL    
+ds_PortScan$Total.Fwd.Packets        <- NULL   
+ds_PortScan$Total.Length.of.Bwd.Packets <- NULL
+ds_PortScan$Total.Length.of.Fwd.Packets <- NULL
+ds_PortScan$URG.Flag.Count          <- NULL   
+ds_PortScan$Average.Packet.Size <- NULL
+ds_PortScan$Bwd.Packet.Length.Std       <- NULL
+ds_PortScan$Flow.Duration               <- NULL
+ds_PortScan$Flow.IAT.Mean               <- NULL
+ds_PortScan$Flow.IAT.Min                <- NULL
+ds_PortScan$Flow.IAT.Std                <- NULL
+ds_PortScan$Fwd.IAT.Min                 <- NULL
+
+ds_PortScan <- ds_PortScan[-grep("^192",ds_PortScan$Source.IP),]
+ds_PortScan$Source.IP <- NULL
+
+linhas_treinamento = sample(1:nrow(ds_PortScan),0.6*nrow(ds_PortScan))
+ds_train_PS <- ds_PortScan[linhas_treinamento,]
+ds_test_PS <- ds_PortScan[-linhas_treinamento,]
+rm(linhas_treinamento)
+ds_train_PS$Label <- as.character(ds_train_PS$Label)
+
+set.seed(123)
+model_PortScan <- qda(Label ~ Bwd.Packets.s + PSH.Flag.Count + Init_Win_bytes_forward, data = ds_train_PS)
+predic <- predict(model_PortScan, newdata= ds_test_PS)
+table(Previsao=predic$class, Original=ds_test_PS$Label)
+table(Previsao=predic$class, Original=ds_test_PS$Label)[2,2] / (sum(table(Previsao=predic$class, Original=ds_test_PS$Label)[2,1:2]))
+model_fit <- train(Label ~ Bwd.Packets.s + PSH.Flag.Count + Init_Win_bytes_forward, method='qda', preProcess=c('scale', 'center') ,data=ds_train_PS)
+confusionMatrix(data = predic$class, reference = ds_test_PS$Label)

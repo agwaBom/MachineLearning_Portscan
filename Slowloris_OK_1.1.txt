@@ -1,0 +1,114 @@
+#Limpa a área de trabalho do R
+rm(list=ls(all=TRUE))
+cat("\014")
+
+library(MASS)
+#library(ggplot2)
+
+ds_DoS <- read.csv2("C:/Users/Vinicius/Desktop/CICIDS/CSVs/dataset_1.csv",sep=",",dec=".")
+#temp <- read.csv2("C:/Users/Vinicius/Desktop/CICIDS/CSVs/dataset_1.csv",sep=",",dec=".")
+
+#temp <- temp[-grep("DoS Gol|DoS Hu|DoS Slowhttpt|DoS Slowhttpt|Heartbleed",temp$Label),]
+
+#ds_DoS <- temp[grep("BENIGN|DoS",temp$Label),]
+
+ds_DoS$ACK.Flag.Count <- NULL             
+ds_DoS$act_data_pkt_fwd <- NULL           
+ds_DoS$Active.Max <- NULL                 
+ds_DoS$Active.Min  <- NULL                
+ds_DoS$Active.Std <- NULL                 
+ds_DoS$Avg.Bwd.Segment.Size  <- NULL      
+ds_DoS$Avg.Fwd.Segment.Size  <- NULL      
+ds_DoS$Bwd.Avg.Bulk.Rate     <- NULL      
+ds_DoS$Bwd.Avg.Bytes.Bulk    <- NULL      
+ds_DoS$Bwd.Avg.Packets.Bulk   <- NULL     
+ds_DoS$Bwd.Header.Length  <- NULL         
+ds_DoS$Bwd.IAT.Max   <- NULL              
+ds_DoS$Bwd.IAT.Min    <- NULL             
+ds_DoS$Bwd.IAT.Std     <- NULL            
+ds_DoS$Bwd.IAT.Total <- NULL              
+ds_DoS$Bwd.Packet.Length.Max  <- NULL     
+ds_DoS$Bwd.Packet.Length.Mean <- NULL     
+ds_DoS$Bwd.Packet.Length.Min   <- NULL    
+ds_DoS$Bwd.PSH.Flags <- NULL              
+ds_DoS$Bwd.URG.Flags  <- NULL             
+ds_DoS$CWE.Flag.Count   <- NULL           
+ds_DoS$Destination.IP    <- NULL          
+ds_DoS$Destination.Port   <- NULL         
+ds_DoS$Down.Up.Ratio  <- NULL             
+ds_DoS$ECE.Flag.Count   <- NULL           
+ds_DoS$FIN.Flag.Count   <- NULL           
+ds_DoS$Flow.Bytes.s    <- NULL            
+ds_DoS$Flow.IAT.Max   <- NULL             
+ds_DoS$Flow.ID    <- NULL                 
+ds_DoS$Flow.Packets.s   <- NULL           
+ds_DoS$Fwd.Avg.Bulk.Rate  <- NULL         
+ds_DoS$Fwd.Avg.Bytes.Bulk  <- NULL        
+ds_DoS$Fwd.Avg.Packets.Bulk  <- NULL      
+ds_DoS$Fwd.Header.Length  <- NULL         
+ds_DoS$Fwd.Header.Length.1  <- NULL       
+ds_DoS$Fwd.IAT.Max   <- NULL              
+ds_DoS$Fwd.IAT.Mean   <- NULL             
+ds_DoS$Fwd.IAT.Std    <- NULL             
+ds_DoS$Fwd.IAT.Total   <- NULL            
+ds_DoS$Fwd.Packet.Length.Max    <- NULL   
+ds_DoS$Fwd.Packet.Length.Min    <- NULL   
+ds_DoS$Fwd.Packet.Length.Std  <- NULL     
+ds_DoS$Fwd.Packets.s   <- NULL            
+ds_DoS$Fwd.PSH.Flags   <- NULL            
+ds_DoS$Fwd.URG.Flags  <- NULL             
+ds_DoS$Idle.Max     <- NULL               
+ds_DoS$Idle.Mean    <- NULL               
+ds_DoS$Idle.Min    <- NULL                
+ds_DoS$Idle.Std    <- NULL                
+ds_DoS$Init_Win_bytes_backward  <- NULL   
+ds_DoS$Max.Packet.Length    <- NULL       
+ds_DoS$Min.Packet.Length   <- NULL        
+ds_DoS$min_seg_size_forward   <- NULL     
+ds_DoS$Packet.Length.Mean    <- NULL     
+ds_DoS$Packet.Length.Std   <- NULL        
+ds_DoS$Packet.Length.Variance   <- NULL   
+ds_DoS$Protocol        <- NULL            
+ds_DoS$RST.Flag.Count   <- NULL                    
+ds_DoS$Source.Port      <- NULL           
+ds_DoS$Subflow.Bwd.Bytes    <- NULL       
+ds_DoS$Subflow.Bwd.Packets   <- NULL     
+ds_DoS$Subflow.Fwd.Packets    <- NULL     
+ds_DoS$SYN.Flag.Count     <- NULL         
+ds_DoS$Timestamp            <- NULL       
+ds_DoS$Total.Backward.Packets  <- NULL    
+ds_DoS$Total.Fwd.Packets        <- NULL   
+ds_DoS$Total.Length.of.Bwd.Packets <- NULL
+ds_DoS$URG.Flag.Count          <- NULL   
+ds_DoS$Average.Packet.Size <- NULL
+ds_DoS$Bwd.Packet.Length.Std       <- NULL
+ds_DoS$Flow.IAT.Std                <- NULL
+ds_DoS$Fwd.IAT.Min                 <- NULL
+ds_DoS$PSH.Flag.Count  <- NULL
+ds_DoS$Init_Win_bytes_forward <- NULL
+ds_DoS$Fwd.Packet.Length.Mean   <- NULL    
+ds_DoS$Bwd.Packets.s <- NULL  
+ds_DoS$Total.Length.of.Fwd.Packets<- NULL  
+ds_DoS$Subflow.Fwd.Bytes<- NULL  
+ds_DoS$Active.Mean<- NULL  
+
+ds_DoS <- ds_DoS[-grep("^192",ds_DoS$Source.IP),]
+ds_DoS <- ds_DoS[-grep("DoS Gol|DoS Hu|DoS Slowhttpt|DoS Slowhttpt|Heartbleed",ds_DoS$Label),]
+
+ds_DoS$Source.IP <- NULL
+
+row.train = sample(1:nrow(ds_DoS),0.6*nrow(ds_DoS))
+ds_train_DoS <- ds_DoS[row.train,]
+ds_test_DoS <- ds_DoS[-row.train,]
+rm(row.train)
+ds_train_DoS$Label <- as.character(ds_train_DoS$Label)
+
+set.seed(123)
+model_DoS <- qda(Label ~ ., data = ds_train_DoS)
+predic <- predict(model_DoS, newdata= ds_test_DoS)
+table(Previsao=predic$class, Original=droplevels(ds_test_DoS)$Label)
+table(Previsao=predic$class, Original=droplevels(ds_test_DoS)$Label)[2,2] / (sum(table(Previsao=predic$class, Original=ds_test_DoS$Label)[2,]))
+
+modelo_conf <- train(Label ~ Flow.Duration + Flow.IAT.Mean + Flow.IAT.Min + Bwd.IAT.Mean, method='qda', preProcess=c('scale', 'center') ,data=ds_train_DoS)
+#confusionMatrix(droplevels(ds_test_DoS)$Label, predict(modelo_conf, ds_test_DoS))
+confusionMatrix(data = predic$class, reference = droplevels(ds_test_DoS)$Label)
